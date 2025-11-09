@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Management - HUMAIN Voice Cloning</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); min-height: 100vh; }
+        .header { background: white; border-bottom: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .header-content { max-width: 1200px; margin: 0 auto; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .header-title h1 { font-size: 2rem; font-weight: 800; color: #0f172a; }
+        .subtitle { font-size: 0.95rem; color: #64748b; font-weight: 500; }
+        .back-btn { padding: 0.75rem 1.5rem; background: #334155; color: white; text-decoration: none; border-radius: 2rem; font-weight: 600; transition: all 0.2s; }
+        .back-btn:hover { background: #1e293b; transform: translateY(-1px); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .section { background: white; border-radius: 1rem; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 1.5rem; }
+        .section-header { margin-bottom: 1.5rem; }
+        .section-header h2 { font-size: 1.25rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem; }
+        .section-description { color: #64748b; font-size: 0.95rem; }
+        .text-input { width: 100%; padding: 1rem; border: 1px solid #cbd5e1; border-radius: 0.75rem; font-size: 1rem; font-family: inherit; transition: all 0.2s; }
+        .text-input:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+        .create-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 1rem 1.5rem; background: #10b981; color: white; border: none; border-radius: 2rem; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 1.5rem; }
+        .create-btn:hover { background: #059669; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .output { margin-top: 2rem; background: #d1fae5; border-radius: 0.75rem; padding: 1.5rem; border: 1px solid #a7f3d0; display: none; }
+        .output h3 { font-weight: 800; color: #0f172a; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .field { margin: 1rem 0; }
+        .field label { display: block; font-weight: 700; color: #334155; font-size: 0.875rem; margin-bottom: 0.5rem; }
+        .input-group { display: flex; gap: 0.5rem; }
+        .field input { flex: 1; padding: 0.875rem 1rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-family: 'Courier New', monospace; font-size: 0.875rem; }
+        .copy-btn { padding: 0.875rem 1rem; background: #334155; color: white; border: none; border-radius: 0.5rem; font-size: 1.25rem; cursor: pointer; transition: all 0.2s; }
+        .copy-btn:hover { background: #1e293b; }
+
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1>HUMAIN</h1>
+                <p class="subtitle">API Management</p>
+            </div>
+            <a href="http://localhost:3000" class="back-btn">← Back to Home</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="section">
+            <div class="section-header">
+                <h2>🔑 CREATE API KEY</h2>
+                <p class="section-description">Generate your API key to integrate voice cloning into your applications. Use Voice IDs from the home page to specify which voice to use.</p>
+            </div>
+
+            <div>
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #0f172a;">API Name</label>
+                <input type="text" id="apiNameInput" class="text-input" placeholder="Enter a name for your API key (e.g., My Production API)">
+            </div>
+
+            <button class="create-btn" onclick="createInstantAPI()">
+                <span style="font-size: 1.2rem;">▶️</span>
+                Create API Key
+            </button>
+            
+            <!-- API Credentials Display -->
+            <div class="output" id="apiCredentials">
+                <h3>
+                    <span style="width: 0.5rem; height: 0.5rem; background: #10b981; border-radius: 50%; display: inline-block;"></span>
+                    API Key Created Successfully
+                </h3>
+                
+                <div class="field">
+                    <label>API Key Name</label>
+                    <div style="padding: 0.875rem 1rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-weight: 600; color: #0f172a;" id="apiKeyName"></div>
+                </div>
+                
+                <div class="field">
+                    <label>API Key (sk_...)</label>
+                    <div class="input-group">
+                        <input type="text" id="apiKey" readonly>
+                        <button class="copy-btn" onclick="copyToClipboard('apiKey')">📋</button>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1.5rem;">
+                    <h4 style="font-weight: 700; color: #0f172a; margin-bottom: 0.75rem; font-size: 1rem;">📖 How to Use Your API</h4>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1rem;">
+                        <pre style="margin: 0; color: #334155; font-size: 0.875rem; overflow-x: auto; line-height: 1.6; font-family: 'Courier New', monospace; white-space: pre-wrap; word-wrap: break-word;" id="apiUsage"></pre>
+                    </div>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-top: 0.75rem;">Replace &lt;your_api_key&gt; with your API key above and &lt;your_voice_id&gt; with any Voice ID from the home page</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        async function createInstantAPI() {
+            const apiKeyName = document.getElementById('apiNameInput').value.trim();
+            if (!apiKeyName) {
+                alert('Please enter an API name');
+                return;
+            }
+            
+            // Generate instant API
+            const apiKey = 'sk_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 23);
+            
+            displayAPICredentials({
+                api_key: apiKey,
+                api_key_name: apiKeyName
+            });
+        }
+        
+        function displayAPICredentials(data) {
+            document.getElementById('apiKeyName').textContent = data.api_key_name;
+            document.getElementById('apiKey').value = data.api_key;
+            
+            document.getElementById('apiUsage').textContent = `curl -X POST http://localhost:5000/api/tts \\
+  -H "Authorization: Bearer <your_api_key>" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "voice_id": "<your_voice_id>",
+    "text": "Your text here",
+    "output_dir": "outputDir"
+  }'`;
+            
+            document.getElementById('apiCredentials').style.display = 'block';
+        }
+        
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            element.select();
+            document.execCommand('copy');
+            alert('Copied to clipboard!');
+        }
+    </script>
+</body>
+</html>
