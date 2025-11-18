@@ -36,6 +36,15 @@ tts = None
 voice_store = {}
 api_keys = {}
 
+# Load existing API keys on startup
+def load_api_keys():
+    global api_keys
+    api_keys = db.get_all_api_keys()
+    print(f"[DEBUG] Loaded {len(api_keys)} API keys from database")
+
+# Load API keys when app starts
+load_api_keys()
+
 def get_tts():
     global tts
     if tts is None:
@@ -115,8 +124,12 @@ def upload_reference():
             os.remove(temp_path)
         return jsonify({'error': f'Audio processing failed: {str(e)}'}), 500
 
-def chunk_text_by_duration(text, max_words_per_chunk=40):
-    """Split text into chunks for ~15 second segments (assuming ~2.5 words per second)"""
+def chunk_text_by_duration(text, max_duration_seconds=15):
+    """Split text into chunks based on estimated speech duration (15 seconds per chunk)"""
+    # Estimate ~2.5 words per second for natural speech
+    words_per_second = 2.5
+    max_words_per_chunk = int(max_duration_seconds * words_per_second)
+    
     words = text.split()
     chunks = []
     
@@ -149,9 +162,10 @@ def generate_speech():
         
         # Check if text needs chunking (split for 15-second segments)
         word_count = len(input_text.split())
-        if word_count > 40:  # ~15 seconds at 2.5 words/second
-            chunks = chunk_text_by_duration(input_text)
-            print(f"Word count: {word_count}, Split into {len(chunks)} chunks")
+        estimated_duration = word_count / 2.5  # seconds
+        if estimated_duration > 15:  # More than 15 seconds
+            chunks = chunk_text_by_duration(input_text, max_duration_seconds=15)
+            print(f"Word count: {word_count}, Estimated duration: {estimated_duration:.1f}s, Split into {len(chunks)} chunks")
             audio_segments = []
             
             for i, chunk in enumerate(chunks):
@@ -234,6 +248,9 @@ def create_voice_api():
         if voice_id not in api_keys[api_key]:
             api_keys[api_key].append(voice_id)
         
+        # Save to database
+        db.save_api_key(api_key, api_keys[api_key])
+        
         return jsonify({
             'voice_id': voice_id,
             'api_key': api_key,
@@ -274,6 +291,10 @@ def create_predefined_apis():
                     'voice_name': voice['name'],
                     'api_key': api_key
                 })
+        
+        # Save to database
+        if api_key in api_keys:
+            db.save_api_key(api_key, api_keys[api_key])
         
         return jsonify({
             'created_apis': created_apis,
@@ -325,8 +346,9 @@ def generate_speech_with_voice():
         
         # Check if text needs chunking (split for 15-second segments)
         word_count = len(input_text.split())
-        if word_count > 40:
-            chunks = chunk_text_by_duration(input_text)
+        estimated_duration = word_count / 2.5  # seconds
+        if estimated_duration > 15:  # More than 15 seconds
+            chunks = chunk_text_by_duration(input_text, max_duration_seconds=15)
             audio_segments = []
             
             for i, chunk in enumerate(chunks):
@@ -404,8 +426,9 @@ def api_tts():
         
         # Check if text needs chunking
         word_count = len(input_text.split())
-        if word_count > 40:
-            chunks = chunk_text_by_duration(input_text)
+        estimated_duration = word_count / 2.5  # seconds
+        if estimated_duration > 15:  # More than 15 seconds
+            chunks = chunk_text_by_duration(input_text, max_duration_seconds=15)
             audio_segments = []
             
             for i, chunk in enumerate(chunks):
@@ -515,6 +538,9 @@ def save_custom_voice():
         if voice_id not in api_keys[api_key]:
             api_keys[api_key].append(voice_id)
         
+        # Save to database
+        db.save_api_key(api_key, api_keys[api_key])
+        
         return jsonify({
             'success': True,
             'voice_id': voice_id,
@@ -591,6 +617,9 @@ def create_api_key():
         
         # Store API key with access to all voices
         api_keys[api_key] = list(voice_store.keys())
+        
+        # Save to database
+        db.save_api_key(api_key, api_keys[api_key])
         
         return jsonify({
             'api_name': api_name,
@@ -1121,14 +1150,6 @@ if __name__ == '__main__':
                 'created_at': datetime.now().isoformat()
             }
     
-    # Load existing voice data if available
-    if os.path.exists('voice_store.json'):
-        try:
-            with open('voice_store.json', 'r') as f:
-                stored_data = json.load(f)
-                voice_store.update(stored_data.get('voices', {}))
-                api_keys.update(stored_data.get('api_keys', {}))
-        except:
-            pass
+    # API keys are now loaded from database on startup
     
     app.run(debug=True, host='0.0.0.0', port=4000)
