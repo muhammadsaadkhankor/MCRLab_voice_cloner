@@ -232,3 +232,7 @@ package-lock.json
 *.wav
 api_output_*.wav
 
+*.txt
+*:Zone.Identifier
+
+.db
