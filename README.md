@@ -103,7 +103,7 @@ curl -X POST http://localhost:5000/api/tts \
   -H "Authorization: Bearer mcr_master_api_key_2024" \
   -H "Content-Type: application/json" \
   -d '{
-    "voice_id": "voice_christine",
+    "voice_id": "voice_tariq_amin",
     "text": "This will be saved to my custom location!",
     "output_path": "/path/to/your/custom/folder/output.wav"
   }'
@@ -111,7 +111,7 @@ curl -X POST http://localhost:5000/api/tts \
 
 **Available Voice IDs:**
 - `voice_professor_abed`
-- `voice_christine` 
+- `voice_tariq_amin` 
 - `voice_saad`
 
 ## 🐳 Docker Deployment
