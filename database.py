@@ -24,6 +24,15 @@ class VoiceDatabase:
             )
         ''')
         
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS api_keys (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                api_key TEXT UNIQUE NOT NULL,
+                voice_ids TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
         # Check if voice_id column exists, if not add it
         cursor.execute("PRAGMA table_info(voices)")
         columns = [column[1] for column in cursor.fetchall()]
@@ -37,7 +46,7 @@ class VoiceDatabase:
         predefined_voices = [
             {"name": "Saad", "audio_path": "samples/saad.wav", "text_path": "samples/saad.txt"},
             {"name": "Professor Abed", "audio_path": "samples/professor_abed.wav", "text_path": "samples/professor_abed.txt"},
-            {"name": "Christine", "audio_path": "samples/christine.wav", "text_path": "samples/christine.txt"}
+            {"name": "Tariq Amin", "audio_path": "samples/tariq_amin.wav", "text_path": "samples/tariq_amin.txt"}
         ]
         
         conn = sqlite3.connect(self.db_path)
@@ -113,3 +122,31 @@ class VoiceDatabase:
         conn.commit()
         conn.close()
         return db_voice_id
+    
+    def save_api_key(self, api_key, voice_ids):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        voice_ids_str = ','.join(voice_ids)
+        cursor.execute('''
+            INSERT OR REPLACE INTO api_keys (api_key, voice_ids)
+            VALUES (?, ?)
+        ''', (api_key, voice_ids_str))
+        
+        conn.commit()
+        conn.close()
+    
+    def get_all_api_keys(self):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT api_key, voice_ids FROM api_keys')
+        api_data = {}
+        
+        for row in cursor.fetchall():
+            api_key = row[0]
+            voice_ids = row[1].split(',') if row[1] else []
+            api_data[api_key] = voice_ids
+        
+        conn.close()
+        return api_data
